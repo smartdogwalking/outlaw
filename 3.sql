@@ -1,0 +1,13 @@
+
+CREATE TABLE user_profiles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL UNIQUE,
+  law_school_id INTEGER,
+  year_of_study INTEGER,
+  study_streak INTEGER DEFAULT 0,
+  total_study_sessions INTEGER DEFAULT 0,
+  points INTEGER DEFAULT 0,
+  level INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

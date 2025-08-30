@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://outlaw.app/sitemap.xml
+
+# Important pages for search engines
+Allow: /
+Allow: /about
+Allow: /features
+Allow: /faq
+Allow: /contact
+Allow: /demo
+Allow: /privacy
+Allow: /terms
+Allow: /disclaimer
+
+# Block admin/auth pages
+Disallow: /dashboard
+Disallow: /account
+Disallow: /onboarding
+Disallow: /auth/
+Disallow: /api/
+
+# Crawl delay to be respectful
+Crawl-delay: 1
