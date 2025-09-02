@@ -60,6 +60,14 @@ export default defineConfig({
             proxyRes.headers['access-control-allow-methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
             proxyRes.headers['access-control-allow-headers'] = 'Content-Type, Authorization';
           });
+
+          // Handle proxy request timeouts
+          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+            proxyReq.setTimeout(5000, () => {
+              console.warn('API request timeout - backend may be slow to respond');
+              proxyReq.destroy();
+            });
+          });
         }
       }
     }

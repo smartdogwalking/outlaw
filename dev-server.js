@@ -20,7 +20,7 @@ let backendReady = false;
 async function checkBackendHealth(retries = 15) {
   for (let i = 0; i < retries; i++) {
     try {
-      const { stdout } = await execAsync('curl -s http://localhost:8787/api/health || echo "FAILED"');
+      const { stdout } = await execAsync('curl -s -m 3 http://localhost:8787/api/health || echo "FAILED"');
       if (stdout.includes('status') && !stdout.includes('FAILED')) {
         return true;
       }
@@ -29,7 +29,7 @@ async function checkBackendHealth(retries = 15) {
     }
     
     console.log(`⏳ Waiting for backend... (${i + 1}/${retries})`);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
   }
   return false;
 }
