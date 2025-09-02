@@ -40,7 +40,7 @@
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
     "check": "tsc && vite build && wrangler deploy --dry-run",
-    "dev": "concurrently --kill-others-on-fail \"npm run dev:backend\" \"sleep 8 && npm run dev:frontend\"",
+    "dev": "node dev-server.js",
     "dev:backend": "wrangler dev --port 8787 --local --compatibility-date 2025-08-26",
     "dev:concurrent": "concurrently --kill-others-on-fail \"npm run dev:backend\" \"sleep 5 && npm run dev:frontend\"",
     "dev:frontend": "vite --port 5173 --host",
