@@ -16,7 +16,7 @@
               <button
                 onClick={() => handleAuthClick('signup')}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-               >
+              >
                 Start Free Trial
               </button>
                <Link
