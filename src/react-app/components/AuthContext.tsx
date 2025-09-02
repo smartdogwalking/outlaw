@@ -1,26 +1,108 @@
-import React, { createContext, useContext } from 'react';
-import { useAuth as useAuthHook } from '@/react-app/hooks/useAuth';
-import type { User, AuthError } from '@/react-app/hooks/useAuth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  isLoading: boolean;
-  error: AuthError | null;
-  isInitialized: boolean;
-  isAuthenticated: boolean;
-  signIn: (mode?: 'signin' | 'signup') => Promise<boolean>;
+  loading: boolean;
+  signIn: (mode?: 'signin' | 'signup') => Promise<void>;
   signOut: () => Promise<void>;
-  clearError: () => void;
-  refresh: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const auth = useAuthHook();
-  
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signIn = async (mode: 'signin' | 'signup' = 'signin') => {
+    try {
+      setLoading(true);
+      
+      // Start OAuth flow
+      const response = await fetch(`/api/auth/oauth/start?provider=google&mode=${mode}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.redirectUrl) {
+        // Redirect to OAuth provider
+        window.location.href = data.redirectUrl;
+      } else {
+        throw new Error(data.error || 'Failed to start authentication');
+      }
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      setUser(null);
+      
+      // Redirect to home page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshUser = async () => {
+    await checkAuthStatus();
+  };
+
   return (
-    <AuthContext.Provider value={auth}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      signIn,
+      signOut,
+      refreshUser,
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -28,43 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
-
-// Simple component that renders children immediately - no auth blocking
-export function ProtectedRoute({ 
-  children, 
-  fallback 
-}: { 
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}) {
-  const { isAuthenticated, isInitialized } = useAuth();
-  
-  // Don't block on auth - render immediately
-  if (!isInitialized) {
-    return <>{children}</>;
-  }
-  
-  if (!isAuthenticated) {
-    return fallback || (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Sign In Required</h2>
-          <p className="text-gray-600 mb-6">You need to sign in to access this page.</p>
-          <button 
-            onClick={() => window.location.href = '/'}
-            className="px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full font-medium transition-all duration-300"
-          >
-            Go to Homepage
-          </button>
-        </div>
-      </div>
-    );
-  }
-  
-  return <>{children}</>;
 }
